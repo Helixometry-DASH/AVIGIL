@@ -98,11 +98,13 @@ class AVLocalizationTask(Task):
 
             L = w_av * L_joint + w_a * L_audio + w_v * L_video + w_mod * CE
 
-        Each branch keeps its **own** supervision. Training end to end on the
-        joint OR-label alone would teach the audio branch to find forgeries
-        that leave no acoustic trace -- a visual-only manipulation leaves none
-        and 24.3% audio-only -- so the per-modality terms are what make joint
-        training safe rather than merely simultaneous.
+        Each branch keeps its **own** supervision, on its own grid and under
+        its own mask: the audio branch is scored against the audio intervals
+        and the video branch against the visual ones, which may lie over
+        entirely different spans. Training on the joint view alone would teach
+        the audio branch to find manipulations that leave no acoustic trace,
+        so the per-modality terms are what make joint training correct rather
+        than merely simultaneous.
         """
         pred = model(batch["audio"], batch["feats"], batch["video_mask"])
         tm = batch["tmask"].float()
