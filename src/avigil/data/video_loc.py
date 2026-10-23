@@ -40,12 +40,23 @@ class VmaeCache:
     their own handle.
     """
 
-    def __init__(self, root: str | Path, split: str) -> None:
+    def __init__(self, root: str | Path, split: str,
+                 expect_regions: int | None = None) -> None:
         self.root, self.split = Path(root), split
         with open(self.root / f"{split}_index.json") as f:
             self.index = json.load(f)
         self.offsets = self.index["offsets"]
         self.nvec = int(self.index["vectors_per_position"])
+        self.regions = int(self.index.get("regions", 0)) or int(round((self.nvec - 1) ** 0.5))
+        if expect_regions is not None and self.regions != int(expect_regions):
+            raise ValueError(
+                f"feature cache at {self.root}/{split} was built with "
+                f"--regions {self.regions} ({self.nvec} vectors per position), but "
+                f"task.video_regions is {expect_regions}. The spatial pooling attends "
+                f"over these tokens, so the two must agree. Either re-run "
+                f"scripts/extract_features.py with --regions {expect_regions}, or set "
+                f"task.video_regions={self.regions} in the config."
+            )
         self.dim = int(self.index["embed_dim"])
         self.shape = (int(self.index["total_positions"]), self.nvec, self.dim)
         self._mm = None

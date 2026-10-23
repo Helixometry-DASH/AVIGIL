@@ -62,6 +62,7 @@ class AVLocalizationTask(Task):
             crop=self.cfg.task.train_crop if train else self.cfg.task.eval_crop,
             block=self.block,
             video_upsample=int(self.cfg.task.get("video_upsample", 2)),
+            video_regions=self.cfg.task.get("video_regions"),
             boundary_sigma=float(self.cfg.task.boundary_sigma),
             # training enumerates every window so nothing is skipped; evaluation
             # scores whole recordings, so it needs no window index

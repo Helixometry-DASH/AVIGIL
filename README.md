@@ -147,6 +147,10 @@ for split in train dev test; do
 done
 ```
 
+`--regions 4` is the default and must match `task.video_regions` in the config
+(the dataset checks this and refuses to start if they disagree, because the
+spatial pooling attends over these tokens).
+
 `--rank`/`--world` shards write disjoint byte ranges of the same file, so the
 processes need no coordination. Per split:
 
@@ -212,6 +216,7 @@ A100-40GB.
 | `task.train_window_hop` | 2.0 | hop between enumerated training windows |
 | `task.grid_block` | 4 | encoder tap the joint head predicts on (15.19 ms) |
 | `task.video_upsample` | 2 | visual output grid (2 → 40 ms) |
+| `task.video_regions` | 4 | spatial region grid; must match the feature cache |
 | `loss.w_modality` | 0.5 | weight on the 4-way attribution head |
 | `eval.monitor` | `AP@0.95` | metric that selects `best.pt` |
 

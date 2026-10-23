@@ -3,6 +3,7 @@ task:
   name: av_localization
   grid_block: 4              # the joint head predicts on the audio grid, 15.19 ms
   video_upsample: 2          # visual predictions on the 40 ms video-frame grid
+  video_regions: 4           # must match scripts/extract_features.py --regions
   crop_seconds: 4.0          # both modalities cropped to the SAME window
   train_crop: window
   train_window_hop: 2.0      # enumerate every 4 s window at a 2 s hop

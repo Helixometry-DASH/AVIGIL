@@ -183,13 +183,32 @@ def load_model(bundle: Path, device: str):
     return model.to(device).eval(), cfg
 
 
+def _regions(cfg) -> int:
+    """Spatial region grid the model was trained on.
+
+    The spatial pooling attends over these tokens, so inference has to build
+    the same number the training cache held. It is recorded in the config
+    rather than guessed, because a mismatch changes the pooling without
+    changing any tensor shape.
+    """
+    for section in ("task", "model"):
+        v = cfg.get(section, {}).get("video_regions")
+        if v is not None:
+            return int(v)
+    raise KeyError(
+        "video_regions is missing from the model config. Add "
+        "task.video_regions to it, set to the --regions value the feature "
+        "cache was built with (the released checkpoint used 2)."
+    )
+
+
 def build_engine(bundle: Path, device: str = "cuda") -> dict:
     """Load the model and backbone once. Loading costs ~15 s, so a directory
     scan must not pay it per file."""
     model, cfg = load_model(bundle, device)
     return {"model": model, "cfg": cfg, "device": device,
             "vit": load_backbone(device=device),
-            "regions": int(cfg.model.get("video_regions", 2))}
+            "regions": _regions(cfg)}
 
 
 def analyse(path: str, bundle: Path, device: str = "cuda", engine: dict | None = None) -> dict:

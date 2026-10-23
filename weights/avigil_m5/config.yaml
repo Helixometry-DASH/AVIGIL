@@ -3,6 +3,7 @@ task:
   name: av_localization
   grid_block: 4
   video_upsample: 2
+  video_regions: 2
   crop_seconds: 4.0
 eval:
   windowed: true

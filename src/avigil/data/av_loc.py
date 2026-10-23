@@ -60,6 +60,7 @@ class AVLocDataset(Dataset):
         crop: str = "random",
         block: int = 4,
         video_upsample: int = 2,
+        video_regions: int | None = None,   # checked against the cache's own
         boundary_sigma: float = 1.5,
         window_hop: float = 0.0,     # >0 enumerates every window of every clip
         seed: int = 1337,
@@ -74,7 +75,7 @@ class AVLocDataset(Dataset):
         self.seed = int(seed)
         self.epoch = 0
 
-        self.cache = VmaeCache(feature_root, split)
+        self.cache = VmaeCache(feature_root, split, expect_regions=video_regions)
         records = select_split(load_metadata(self.root, metadata), split)
         self.records = [r for r in records if r["file"] in self.cache.offsets]
         missing = len(records) - len(self.records)
