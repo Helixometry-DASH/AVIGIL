@@ -8,6 +8,10 @@ uses.
     python scripts/evaluate.py experiments/av_localization/m5/<timestamp> \
         --ckpt best.pt --split test --out test_metrics.json
 
+Trailing ``key=value`` arguments override the saved config, which is how to
+point at moved data (``data.root=...``) or limit the run
+(``limit_test_batches=20``).
+
 ``--crop full`` scores whole clips by sliding the encoder over each recording
 and reassembling the predictions, which is the default. ``--refine soft``
 reads each boundary as the probability-weighted centroid of the boundary head,
@@ -52,10 +56,24 @@ def main() -> int:
     ap.add_argument("--split", default="test")
     ap.add_argument("--batch-size", type=int, default=0, help="0 = auto (1 when crop=full)")
     ap.add_argument("--out", default="", help="write metrics JSON here")
-    args = ap.parse_args()
+    ap.add_argument("overrides", nargs="*",
+                    help="key=value dotlist overrides applied to the run's config")
+    # collected with parse_known_args so overrides may appear in any position
+    args, unknown = ap.parse_known_args()
+    overrides = list(args.overrides)
+    stray = []
+    for token in unknown:
+        if "=" in token and not token.startswith("-"):
+            overrides.append(token)
+        else:
+            stray.append(token)
+    if stray:
+        ap.error("unrecognized arguments: " + " ".join(stray))
 
     rd = Path(args.run_dir)
     cfg = OmegaConf.load(rd / "config.yaml")
+    if overrides:
+        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(overrides))
     cfg.task.eval_crop = args.crop
     cfg.eval.boundary_refine = args.refine
     cfg.eval.ap_iou = AP_IOU
