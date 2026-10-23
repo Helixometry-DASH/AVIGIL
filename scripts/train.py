@@ -34,9 +34,23 @@ def main() -> int:
     ap.add_argument("--test-only", action="store_true", help="skip training; evaluate only")
     ap.add_argument("--name", default=None, help="override log.name")
     ap.add_argument("--dry-run", action="store_true", help="build everything, print config, run nothing")
-    args = ap.parse_args()
+    # Overrides are collected with parse_known_args rather than relying on the
+    # positional, so that `--test` and friends may appear anywhere on the line:
+    # argparse interleaves optionals and a variadic positional differently
+    # across Python patch releases, and otherwise the same command works on one
+    # interpreter and fails on another.
+    args, unknown = ap.parse_known_args()
+    overrides = list(args.overrides)
+    stray = []
+    for token in unknown:
+        if "=" in token and not token.startswith("-"):
+            overrides.append(token)
+        else:
+            stray.append(token)
+    if stray:
+        ap.error("unrecognized arguments: " + " ".join(stray))
 
-    cfg = load_config(args.config, args.overrides)
+    cfg = load_config(args.config, overrides)
     if args.name:
         cfg.log.name = args.name
 
