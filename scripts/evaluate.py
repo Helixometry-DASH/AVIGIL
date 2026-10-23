@@ -102,14 +102,24 @@ def main() -> int:
     out.write_text(json.dumps(metrics, indent=2))
 
     print(f"\n{rd.parent.name}  ({args.split}, {args.crop}, {args.refine}, epoch {state['epoch']})")
+
+    def line(label: str, key: str, fmt: str = "{:.4f}", scale: float = 1.0) -> None:
+        """Print a metric only if this task reported it."""
+        v = metrics.get(key)
+        if v is not None:
+            print(f"  {label:<10} " + fmt.format(v * scale))
+
     for k in AP_IOU:
-        print(f"  AP@{k:<5} {metrics[f'AP@{k}']:.4f}")
-    print(f"  AR@10      {metrics['AR@10']:.4f}")
-    print(f"  frame_f1   {metrics['frame_f1']:.4f}")
-    print(f"  bnd MAE    {metrics['boundary_mae']*1000:.1f} ms")
-    print(f"  clip EER   {metrics['clip_eer']*100:.2f}%   AUC {metrics['clip_auc']:.4f}")
-    print(f"  segments   {metrics['n_gt_segments']:.0f} ground truth, "
-          f"{metrics['n_proposals']:.0f} predicted")
+        line(f"AP@{k}", f"AP@{k}")
+    line("AR@10", "AR@10")
+    line("bnd MAE", "boundary_mae", "{:.1f} ms", 1000.0)
+    line("mod acc", "mod_acc")
+    if metrics.get("clip_eer") is not None:
+        print(f"  clip EER   {metrics['clip_eer'] * 100:.2f}%"
+              + (f"   AUC {metrics['clip_auc']:.4f}" if metrics.get("clip_auc") is not None else ""))
+    if metrics.get("n_gt_segments") is not None:
+        print(f"  segments   {metrics['n_gt_segments']:.0f} ground truth, "
+              f"{metrics.get('n_proposals', 0):.0f} predicted")
     print(f"  -> {out}")
     return 0
 
