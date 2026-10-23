@@ -262,8 +262,14 @@ def analyse(path: str, bundle: Path, device: str = "cuda", engine: dict | None =
     }
 
 
-def report(res: dict) -> None:
-    """Human-readable summary for one file."""
+def report(res: dict, branches: bool = False) -> None:
+    """Human-readable summary for one file.
+
+    Prints the model's prediction: the clip verdict, the manipulated modality
+    and the manipulated intervals, all from the multimodal head. ``branches``
+    additionally prints what each unimodal branch reported on its own, which is
+    diagnostic rather than the answer.
+    """
     p = res["clip_fake_probability"]
     verdict = "FORGERY DETECTED" if p >= 0.5 else "no forgery detected"
     i = res["info"]
@@ -299,9 +305,13 @@ def report(res: dict) -> None:
               f"   video should fire: {'yes' if gt['modify_video'] else 'NO'}")
     # no labels available for this file: nothing to compare against
 
-    table("JOINT   union of the audio and visual intervals", None, res["segments"])
-    for name, key, flag in (("AUDIO   where in the audio, 15.19 ms grid", "audio", "modify_audio"),
-                            ("VIDEO   where in the video, 40 ms grid", "video", "modify_video")):
+    table("MANIPULATED INTERVALS", None, res["segments"])
+
+    if not branches:
+        return
+    # diagnostics: what each branch reported before fusion
+    for name, key, flag in (("audio branch, 15.19 ms grid", "audio", "modify_audio"),
+                            ("video branch, 40 ms grid", "video", "modify_video")):
         b = res[key]
         title = name
         if gt:
@@ -322,6 +332,8 @@ def main() -> int:
     ap.add_argument("--out", default="", help="write JSON here")
     ap.add_argument("--json", action="store_true", help="print JSON instead of a summary")
     ap.add_argument("--limit", type=int, default=0, help="max files in directory mode")
+    ap.add_argument("--branches", action="store_true",
+                    help="also print what each unimodal branch reported (diagnostic)")
     args = ap.parse_args()
 
     target = Path(args.path)
@@ -351,7 +363,7 @@ def main() -> int:
             print(json.dumps({k2: v for k2, v in res.items()
                               if k2 != "frame_probability"}, indent=2))
         elif len(files) == 1:
-            report(res)
+            report(res, branches=args.branches)
         else:
             seg = ", ".join(f"{s['start']:.2f}-{s['end']:.2f}s" for s in res["segments"])
             print(f"  [{k}/{len(files)}] {f.name:24s} p={res['clip_fake_probability']:.4f} "
