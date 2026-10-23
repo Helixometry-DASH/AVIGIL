@@ -24,14 +24,12 @@ from torch.utils.data import Dataset
 
 from ..models.video.vgrid import n_out, segments_to_targets
 from .index import load_metadata, select_split
-from .labels import modality_label, sorted_segments
+from .labels import modality_label, segments_for
 
 
 def video_segments(record: dict) -> np.ndarray:
     """Forged *visual* intervals in seconds, or empty if the video is genuine."""
-    if not record["modify_video"]:
-        return np.zeros((0, 2), dtype=np.float32)
-    return sorted_segments(record)
+    return segments_for(record, "visual")
 
 
 class VmaeCache:

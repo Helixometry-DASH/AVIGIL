@@ -47,45 +47,83 @@ Point `root` at a directory holding one folder per split plus a metadata JSON:
 └── test/
 ```
 
-`metadata.min.json` is a flat list of records, one per clip:
-
-```json
-[
-  {
-    "file": "train/000123.mp4",
-    "split": "train",
-    "video_frames": 116,
-    "fake_periods": [[2.500, 3.224]],
-    "modify_audio": true,
-    "modify_video": true,
-    "original": "train/000004.mp4"
-  }
-]
-```
+`metadata.min.json` is a flat list of records, one per clip. Every record
+carries these fields:
 
 | field | type | meaning |
 |---|---|---|
 | `file` | str | clip path, relative to `root` |
 | `split` | str | which split this clip belongs to |
 | `video_frames` | int | number of video frames, and the authoritative frame count |
+| `original` | str \| null | the genuine clip this one was derived from; `null` if genuine |
+
+and then states what was manipulated, in either of two ways.
+
+**Independent intervals** — use this when the audio and the video were
+manipulated over *different* spans. Give each modality its own list:
+
+```json
+{
+  "file": "train/000123.mp4", "split": "train", "video_frames": 250,
+  "audio_fake_periods":  [[1.0, 3.0]],
+  "visual_fake_periods": [[5.0, 7.0]],
+  "original": "train/000004.mp4"
+}
+```
+
+Either list may be empty or absent, and they need not overlap or match in
+count. The example above — audio manipulated at 1–3 s, video at 5–7 s — trains
+the audio branch on 1–3 s only and the video branch on 5–7 s only:
+
+```
+audio branch target  (15.19 ms grid): positive span 1.00 - 2.98 s
+video branch target  (40 ms grid):    positive span 5.00 - 6.96 s
+joint view: [[1.0, 3.0], [5.0, 7.0]]
+```
+
+**Shared intervals** — use this when both modalities were manipulated over the
+same spans. One list plus two flags:
+
+```json
+{
+  "file": "train/000123.mp4", "split": "train", "video_frames": 250,
+  "fake_periods": [[2.500, 3.224]],
+  "modify_audio": true, "modify_video": true,
+  "original": "train/000004.mp4"
+}
+```
+
+| field | type | meaning |
+|---|---|---|
 | `fake_periods` | `[[start, end]]` | manipulated intervals in seconds; `[]` if genuine |
 | `modify_audio` | bool | whether the audio was manipulated |
 | `modify_video` | bool | whether the video was manipulated |
-| `original` | str \| null | the genuine clip this one was derived from; `null` if genuine |
 
-Three label views are derived from each record, which is what keeps each branch
-supervised on its own modality:
+The two forms can be mixed across records in one file. If the per-modality
+fields are present they take precedence, and the flags are derived from them,
+so the two can never contradict each other.
 
-```
-audio  = fake_periods if modify_audio else []
-visual = fake_periods if modify_video else []
-joint  = fake_periods if (modify_audio or modify_video) else []
-```
+### How the labels are used
 
-So a clip whose audio alone was manipulated gets an empty visual target even
-though `fake_periods` is non-empty. `original` groups each genuine clip with
-every fake derived from it, so a regrouped split cannot leak between train and
-test.
+Three views come out of each record:
+
+| view | supervises | content |
+|---|---|---|
+| audio | the audio branch | that modality's intervals |
+| visual | the video branch | that modality's intervals |
+| joint | the fusion head | the **union** of the two, overlaps merged |
+
+The audio and visual views are independent, which is what lets each branch
+learn its own modality: a manipulation that leaves no acoustic trace never
+reaches the audio branch, and vice versa. Overlaps are merged in the joint
+view so a region manipulated in both modalities is counted once.
+
+`original` groups each genuine clip with every fake derived from it, so a
+regrouped split cannot leak between train and test.
+
+At inference each of the three heads reports its own intervals, on its own
+grid, so a clip manipulated in different places in audio and video comes back
+as two different interval sets plus their union.
 
 Clips are expected at 224×224, 25 fps, 16 kHz mono audio, each file carrying
 both streams. Adjust `fps`, `sample_rate` and `image_size` in

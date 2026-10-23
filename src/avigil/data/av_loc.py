@@ -1,17 +1,11 @@
 """Audio-visual localization dataset.
 
 Yields both modalities for the same wall-clock window plus three label views.
-A record carries one ``fake_periods`` list with ``modify_audio`` /
-``modify_video`` flags (see :mod:`avigil.data.labels`), so the views are
-derived from it:
-
-    audio  = fake_periods if modify_audio else []
-    visual = fake_periods if modify_video else []
-    joint  = fake_periods if (modify_audio or modify_video) else []
-
-A clip whose audio alone was manipulated therefore carries an empty visual
-target even though ``fake_periods`` is non-empty, which is what keeps each
-branch supervised on its own modality.
+The audio and visual views are **independent**: a record may place them over
+entirely different spans, and the joint view is their merged union. A clip
+whose audio alone was manipulated carries an empty visual target, and a clip
+with audio manipulated at 1-3 s and video at 5-7 s supervises each branch on
+its own interval only. See :mod:`avigil.data.labels` for the record schema.
 
 Both modalities are cropped to the same window, which preserves the temporal
 correspondence the fusion head reads.
@@ -28,17 +22,19 @@ from torch.utils.data import Dataset
 from ..models.audio.grid import n_frames, segments_to_targets
 from ..models.video.vgrid import segments_to_targets as video_targets
 from .index import load_metadata, select_split
-from .labels import modality_label, sorted_segments
+from .labels import modality_label, segments_for
 from .video_loc import VmaeCache
 
 VIDEO_HOP = 0.08            # one cached video position, in seconds
 
 
 def modality_segments(record: dict, which: str) -> np.ndarray:
-    """Forged intervals for ``which`` in {"audio", "visual", "joint"}."""
-    a, v = bool(record["modify_audio"]), bool(record["modify_video"])
-    keep = {"audio": a, "visual": v, "joint": a or v}[which]
-    return sorted_segments(record) if keep else np.zeros((0, 2), dtype=np.float32)
+    """Forged intervals for ``which`` in {"audio", "visual", "joint"}.
+
+    The audio and visual views are independent: a record may place them over
+    entirely different spans. See :mod:`avigil.data.labels`.
+    """
+    return segments_for(record, which)
 
 
 class AVLocDataset(Dataset):
@@ -189,11 +185,11 @@ class AVLocDataset(Dataset):
 
         joint, aud, vis = rebase("joint"), rebase("audio"), rebase("visual")
 
-        # Three dense target sets, each on the grid its head predicts on.
-        # The joint OR-label alone is not enough to train end to end: it would
-        # teach the audio branch to find video-only forgeries, which carry no
-        # acoustic evidence at all (24.6% of clips), and vice versa. Each branch
-        # keeps its own supervision; only the fusion sees the union.
+        # Three dense target sets, each on the grid its head predicts on and
+        # each from its own label view. The joint view alone would teach the
+        # audio branch to find video-only manipulations, which carry no
+        # acoustic evidence, and the video branch the reverse. Only the fusion
+        # head sees the union of the two.
         tgt = segments_to_targets(
             [tuple(x) for x in joint], n_samp, block=self.block,
             sample_rate=self.sample_rate, boundary_sigma=self.boundary_sigma,
