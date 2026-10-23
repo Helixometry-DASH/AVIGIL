@@ -276,7 +276,7 @@ def report(res: dict) -> None:
     print(f"  source    {src}, {i.get('source_fps')} fps, {i.get('source_sr')} Hz{note}")
     print(f"\n  {verdict}   (clip probability {p:.4f})")
     print(f"  modality  {res['modality']}   "
-          + "  ".join(f"{k}={v:.3f}" for k, v in res["modality_probabilities"].items()))
+          + "  ".join(f"{k}={v:.4f}" for k, v in res["modality_probabilities"].items()))
     def table(title, prob, segs):
         head = f"  {title}" + (f"   p={prob:.4f}" if prob is not None else "")
         print(f"\n{head}")
@@ -299,9 +299,9 @@ def report(res: dict) -> None:
               f"   video should fire: {'yes' if gt['modify_video'] else 'NO'}")
     # no labels available for this file: nothing to compare against
 
-    table("JOINT  (audio or video forged)", None, res["segments"])
-    for name, key, flag in (("AUDIO  branch, 15.19 ms grid", "audio", "modify_audio"),
-                            ("VIDEO  branch, 40 ms grid", "video", "modify_video")):
+    table("JOINT   union of the audio and visual intervals", None, res["segments"])
+    for name, key, flag in (("AUDIO   where in the audio, 15.19 ms grid", "audio", "modify_audio"),
+                            ("VIDEO   where in the video, 40 ms grid", "video", "modify_video")):
         b = res[key]
         title = name
         if gt:

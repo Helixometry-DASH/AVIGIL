@@ -277,13 +277,43 @@ automatically, and the report marks any file that was not already in that
 format.
 
 ```
-  FORGERY DETECTED   (clip probability 0.9999)
-  modality  visual_only   real=0.000  visual_only=1.000  audio_only=0.000  both=0.000
+  file      000003.mp4
+  duration  4.288 s   105 frames @25fps   2 audio windows
+  source    224x224, 25.0 fps, 16000 Hz
 
-  JOINT  (audio or video forged)
+  FORGERY DETECTED   (clip probability 0.9999)
+  modality  visual_only   real=0.0000  visual_only=0.9999  audio_only=0.0000  both=0.0001
+
+  JOINT   union of the audio and visual intervals
      #      start        end    length     conf
      1     2.500s     2.780s    0.280s   0.9994
+
+  AUDIO   where in the audio, 15.19 ms grid   p=0.0020
+    none
+
+  VIDEO   where in the video, 40 ms grid   p=0.9999
+     #      start        end    length     conf
+     1     2.508s     2.796s    0.288s   0.9970
 ```
+
+Reading it:
+
+| line | meaning |
+|---|---|
+| `duration` | length after resampling to 25 fps, and how many 4.0375 s windows the audio encoder slid over |
+| `source` | the input's own format; marked if it had to be resampled |
+| `clip probability` | P(this clip is manipulated anywhere), 0–1 |
+| `modality` | the argmax, with all four class probabilities beside it |
+| `JOINT` | the union of the two modalities' intervals |
+| `AUDIO` | where in the **audio**, on its 15.19 ms grid, with that branch's own clip probability |
+| `VIDEO` | where in the **video**, on its 40 ms grid, with that branch's own clip probability |
+
+The three tables are independent predictions, not one answer repeated. In the
+example the audio branch reports `none` at p=0.0020 and the video branch
+reports 2.508–2.796 s at p=0.9999 — so the audio is clean and the manipulation
+is visual, which is how `modality = visual_only` is arrived at. When a clip is
+manipulated in different places in each modality, `AUDIO` and `VIDEO` show
+those different intervals and `JOINT` shows their union.
 
 `JOINT` is the answer; the per-branch tables below it show what each modality
 contributed. Set `AVIGIL_DATASET_ROOT` to have clips from a dataset root
