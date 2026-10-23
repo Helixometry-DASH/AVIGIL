@@ -43,7 +43,15 @@ class VmaeCache:
     def __init__(self, root: str | Path, split: str,
                  expect_regions: int | None = None) -> None:
         self.root, self.split = Path(root), split
-        with open(self.root / f"{split}_index.json") as f:
+        idx = self.root / f"{split}_index.json"
+        if not idx.is_file():
+            raise FileNotFoundError(
+                f"no feature cache for split {split!r} at {self.root} "
+                f"(expected {idx.name}). Set data.feature_root to the --out "
+                f"directory of scripts/extract_features.py, and run that script "
+                f"for this split first if you have not."
+            )
+        with open(idx) as f:
             self.index = json.load(f)
         self.offsets = self.index["offsets"]
         self.nvec = int(self.index["vectors_per_position"])

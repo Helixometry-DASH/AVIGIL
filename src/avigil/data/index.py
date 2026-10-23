@@ -11,7 +11,14 @@ from pathlib import Path
 
 
 def load_metadata(root: str | Path, filename: str = "metadata.min.json") -> list[dict]:
-    with open(Path(root) / filename) as f:
+    path = Path(root) / filename
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"no metadata at {path}. Set data.root to the dataset directory "
+            f"holding {filename} and the split folders; see the record schema "
+            f"in avigil.data.labels."
+        )
+    with open(path) as f:
         return json.load(f)
 
 
