@@ -1,0 +1,54 @@
+# Claude Code / assistant tooling
+.claude/
+.claude*
+CLAUDE.md
+**/.claude/
+.scratch/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.Python
+pip-wheel-metadata/
+
+# tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# experiment outputs
+experiments/
+runs/
+*.log
+*.jsonl
+wandb/
+
+# data and derived artefacts (rooted, so src/avigil/data/ and configs/data/
+# are not caught by these)
+/data/
+/features/
+*.f16
+*_index.json
+*.mp4
+*.wav
+*.npz
+
+# checkpoints (the released weights under weights/ are committed explicitly)
+*.pt
+*.pth
+!weights/avigil_m5/model.pt
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp

@@ -1,0 +1,9 @@
+# AVIGIL m3: aligned features concatenated, then a temporal conv trunk.
+extends: _task.yaml
+defaults:
+  data: dataset
+model:
+  name: avigil_m3
+  variant: m3
+log:
+  name: av_localization/m3

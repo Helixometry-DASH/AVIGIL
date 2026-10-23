@@ -1,0 +1,9 @@
+# AVIGIL m5: m4 + reliability gating on the cross-modal messages.
+extends: _task.yaml
+defaults:
+  data: dataset
+model:
+  name: avigil_m5
+  variant: m5
+log:
+  name: av_localization/m5

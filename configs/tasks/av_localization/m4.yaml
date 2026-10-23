@@ -1,0 +1,9 @@
+# AVIGIL m4: m3 + bidirectional cross-modal attention.
+extends: _task.yaml
+defaults:
+  data: dataset
+model:
+  name: avigil_m4
+  variant: m4
+log:
+  name: av_localization/m4

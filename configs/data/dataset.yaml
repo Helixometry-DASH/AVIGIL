@@ -1,0 +1,41 @@
+# Dataset paths and media constants.
+#
+# `root` is the directory holding the split folders and the metadata JSON;
+# `feature_root` is the output of scripts/extract_features.py. Both can be set
+# here or overridden on the command line:
+#
+#   python scripts/train.py <config> data.root=/data/clips \
+#       data.feature_root=/data/features
+#
+# See src/avigil/data/labels.py for the metadata record schema.
+name: dataset
+root: /path/to/dataset
+metadata: metadata.min.json
+feature_root: /path/to/features
+
+# folder names inside `root`, one per split
+splits:
+  train: train
+  val: dev
+  test: test
+
+# media constants; clips are expected to already be in this format
+fps: 25.0
+sample_rate: 16000
+image_size: 224
+audio_channels: 1
+
+clip_seconds: 4.0
+clip_frames: 100
+random_crop: true
+pad_short: true
+reals: all
+
+loader:
+  batch_size: 16
+  num_workers: 10
+  eval_batch_size: 4
+  pin_memory: true
+  prefetch_factor: 4
+  persistent_workers: true
+  drop_last: true

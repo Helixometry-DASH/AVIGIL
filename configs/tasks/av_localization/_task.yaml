@@ -1,0 +1,76 @@
+# Shared settings for joint audio-visual localization.
+task:
+  name: av_localization
+  grid_block: 4              # the joint head predicts on the audio grid, 15.19 ms
+  video_upsample: 2          # visual predictions on the 40 ms video-frame grid
+  crop_seconds: 4.0          # both modalities cropped to the SAME window
+  train_crop: window
+  train_window_hop: 2.0      # enumerate every 4 s window at a 2 s hop
+  eval_crop: full
+  boundary_sigma: 1.5
+
+model:
+  name: avigil_m5
+  variant: m5
+  dim: 256
+  audio_dim: 128             # audio branch head width
+  video_dim: 256             # video branch trunk width
+  n_blocks: 4
+  dilations: [1, 2, 4, 8]
+  heads: 4
+  fuse_grid: audio
+  freeze_branches: false     # train end to end
+  audio:
+    name: aloc_a3
+    variant: a3
+    ckpt: null
+  video:
+    name: vloc_v3
+    variant: v3
+    ckpt: null
+
+loss:
+  w_frame: 1.0
+  w_dice: 1.0
+  w_boundary: 1.0
+  w_clip: 0.5
+  w_modality: 0.5            # the 4-way attribution head
+  w_audio: 1.0               # audio branch against the audio label view
+  w_video: 1.0               # video branch against the visual label view
+  pos_weight: 2.0
+
+train:
+  epochs: 4
+  optimizer: adam
+  lr: 3.0e-4
+  lr_min: 1.0e-5
+  betas: [0.9, 0.999]
+  weight_decay: 1.0e-4
+  scheduler: cosine
+  grad_clip: 1.0
+
+data:
+  loader:
+    batch_size: 16
+    eval_batch_size: 4
+    num_workers: 10
+
+eval:
+  # Crop for computation, predict on the full recording: slide the 4.0375 s
+  # audio encoder window, reassemble on the recording's frame grid, then fuse
+  # once over that whole timeline.
+  windowed: true
+  window_hop_frames: 132
+  window_batch: 16
+  monitor: AP@0.95
+  monitor_mode: max
+  proposal_mode: region
+  boundary_refine: soft
+  frame_threshold: 0.5
+  peak_threshold: 0.2
+  min_segment_seconds: 0.15
+  max_segment_seconds: 2.0
+  nms_iou: 0.3
+  ap_iou: [0.5, 0.75, 0.9, 0.95]
+  ar_topk: [10, 5, 2, 1]
+  ar_iou: [0.5, 0.95]

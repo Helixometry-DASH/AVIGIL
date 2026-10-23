@@ -1,0 +1,40 @@
+defaults:
+  data: dataset
+  model: avigil
+
+seed: 1337
+device: cuda
+amp: true
+amp_dtype: bfloat16
+compile: false
+
+train:
+  epochs: 4
+  optimizer: adam
+  lr: 3.0e-4
+  lr_min: 1.0e-5
+  weight_decay: 1.0e-4
+  betas: [0.9, 0.999]
+  scheduler: cosine
+  warmup_epochs: 2
+  grad_clip: 1.0
+  accum_steps: 1
+
+loss:
+  frame_bce: 1.0
+  pos_weight: auto
+  boundary_l1: 0.0
+
+eval:
+  ap_iou: [0.5, 0.75, 0.9, 0.95]
+  ar_topk: [10, 5, 2, 1]
+  ar_iou: [0.5, 0.95]
+  min_segment_seconds: 0.15
+  threshold: 0.5
+
+log:
+  out_dir: experiments
+  name: baseline
+  save_every: 1
+  keep_last: 3
+  tensorboard: true

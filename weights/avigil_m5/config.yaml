@@ -1,0 +1,35 @@
+# Inference configuration for the released AVIGIL m5 checkpoint.
+task:
+  name: av_localization
+  grid_block: 4
+  video_upsample: 2
+  crop_seconds: 4.0
+eval:
+  windowed: true
+  window_hop_frames: 132
+  proposal_mode: region
+  boundary_refine: soft
+  frame_threshold: 0.5
+  peak_threshold: 0.2
+  min_segment_seconds: 0.15
+  max_segment_seconds: 2.0
+  nms_iou: 0.3
+model:
+  name: avigil_m5
+  variant: m5
+  dim: 256
+  audio_dim: 128
+  video_dim: 256
+  n_blocks: 4
+  dilations: [1, 2, 4, 8]
+  heads: 4
+  fuse_grid: audio
+  freeze_branches: false
+  audio:
+    name: aloc_a3
+    variant: a3
+    ckpt: null
+  video:
+    name: vloc_v3
+    variant: v3
+    ckpt: null
