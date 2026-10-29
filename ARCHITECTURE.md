@@ -41,18 +41,18 @@ At 25 Hz, the audio reference view concatenates AV-HuBERT audio (768) with fixed
 
 Four width-768, 6-layer, 12-head towers predict audio-self, video-self, audio-from-video and video-from-audio. Self prediction uses alternating masked blocks; evidence extraction evaluates every mask fold. Cross prediction has no target-modality input. Each tower predicts a low-rank Gaussian:
 
-\[
+$$
  p_\theta(h_t^m\mid c_t)=\mathcal N(\mu_t^m,\Sigma_t^m),\qquad
  \Sigma_t^m=\operatorname{diag}(d_t^m)+U_t^m(U_t^m)^\top,\quad d_t^m>0.
-\]
+$$
 
 Training minimizes mean negative log likelihood, normalized by dimension, over genuine windows. Cross predictors score all valid positions; self predictors score only masked positions. The covariance rank is 16. Linear algebra is performed in float32 even with BF16 neural activations.
 
 For residual whitening, set `B=D^{-1/2}U` and `w=D^{-1/2}(h−μ)`. If `BᵀB=VΛVᵀ`, the implemented correction is
 
-\[
+$$
  r=\left[I-BV\,\operatorname{diag}\!\left(\frac{1}{\sqrt{1+\lambda_i}(1+\sqrt{1+\lambda_i})}\right)V^\top B^\top\right]w.
-\]
+$$
 
 This applies `(I+BBᵀ)^{-1/2}` without constructing a 512×512 inverse square root. Under a correctly specified conditional Gaussian, `Cov(r | c)=I`. **This covariance identity does not imply that finite learned residuals are exactly Gaussian or forgery invariant.** The unit test verifies the matrix identity.
 
@@ -62,12 +62,12 @@ A fixed seeded orthogonal projection retains 12 dimensions from each self/cross 
 
 Each modality has a four-layer affine autoregressive conditional flow `T_m`; its condition is the *previous* evidence vector, never the observation being scored. Train it on reserved genuine reference families, disjoint from predictor-fitting and calibration families:
 
-\[
+$$
  \mathcal L_{\mathrm{ref}}^m
  =\mathbb E_{P_{\mathrm{real}}^m}
  \left[\tfrac12\|T_m(e_t\mid e_{t-1})\|^2+\tfrac d2\log(2\pi)
        -\log|\det J_{T_m}(e_t\mid e_{t-1})|\right]/d.
-\]
+$$
 
 Each affine layer is triangular, with scale `exp(2 tanh(s/2))`, making it invertible with tractable log determinant. Separate standardization is fitted only on genuine reference examples. The first crop position, whose lag/derivative is undefined, is excluded from flow likelihood fitting. Context and evidence are computed on the same overlapping 4-second windows at fitting and inference.
 
@@ -79,19 +79,19 @@ Each affine layer is triangular, with scale `exp(2 tanh(s/2))`, making it invert
 
 For transformed evidence `z_t^m`, form left/right windows at scales 80, 160 and 320 ms. Each side uses eight temporal anchors, with explicit availability masks. The reference is `G=N(0,I)`. Use the Gaussian kernel
 
-\[
+$$
  k_\beta(x,y)=\exp[-\|x-y\|^2/(2\beta)],\qquad \beta\in\{d/2,d,2d\}.
-\]
+$$
 
 The Gaussian reference expectations are analytic:
 
-\[
+$$
  \mathbb E_{g\sim G}k_\beta(x,g)
  =\left(\frac{\beta}{\beta+1}\right)^{d/2}
    e^{-\|x\|^2/[2(\beta+1)]},\quad
  \mathbb E_{g,g'\sim G}k_\beta(g,g')
  =\left(\frac{\beta}{\beta+2}\right)^{d/2}.
-\]
+$$
 
 For each scale compute `A_L=MMD²(P_L,G)`, `A_R=MMD²(P_R,G)`, `D=MMD²(P_L,P_R)`, `Δ=A_R−A_L`, and a support indicator, averaging over the three bandwidths. The implementation uses biased empirical MMD (including diagonals), which is nonnegative up to roundoff. These statistics are not p-values; repeated anchors and temporal dependence invalidate an independent-sample interpretation.
 
@@ -107,9 +107,9 @@ Initial boundary pretraining uses only synthetic reference-space episodes: mean 
 
 Both private and shared heads predict frame/start/end logits and continuous endpoint offsets:
 
-\[
+$$
  \widehat b_t=t_t+\Delta_t\,a\tanh(u_t).
-\]
+$$
 
 The range `a=1` on the reference grid covers a final subframe boundary; native experts use `a=3` to account for the valid-convolution tail. Only the nearest valid timestamp receives an offset target. A crop that begins/ends inside a forged region does not create a new boundary; such boundary targets are censored. Loss combines weighted frame BCE, Dice, focal boundary terms, and Smooth-L1 offsets. Private heads additionally receive clip BCE and joint modality attribution CE.
 
