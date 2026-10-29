@@ -1,0 +1,45 @@
+{
+  "summary": {
+    "audio_source_to_A": {
+      "kind": "seen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 97.49,
+      "AP75": 94.99,
+      "AP95": 90.21,
+      "AR100": 96.18,
+      "videos": 13191
+    },
+    "audio_source_to_V": {
+      "kind": "unseen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 30.04,
+      "AP75": 13.12,
+      "AP95": 0.7,
+      "AR100": 23.61,
+      "videos": 13271
+    },
+    "visual_source_to_V": {
+      "kind": "seen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 97.7,
+      "AP75": 93.69,
+      "AP95": 88.66,
+      "AR100": 94.7,
+      "videos": 13271
+    },
+    "visual_source_to_A": {
+      "kind": "unseen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 31.56,
+      "AP75": 17.54,
+      "AP95": 1.47,
+      "AR100": 31.84,
+      "videos": 13191
+    }
+  },
+  "targets_met": {
+    "seen_AP75>=95": false,
+    "seen_AP95>=86": true,
+    "unseen_AP75>=30": false
+  }
+}
