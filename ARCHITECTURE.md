@@ -43,7 +43,7 @@ Four width-768, 6-layer, 12-head towers predict audio-self, video-self, audio-fr
 
 $$
  p_\theta(h_t^m\mid c_t)=\mathcal N(\mu_t^m,\Sigma_t^m),\qquad
- \Sigma_t^m=\operatorname{diag}(d_t^m)+U_t^m(U_t^m)^\top,\quad d_t^m>0.
+ \Sigma_t^m=\mathrm{diag}(d_t^m)+U_t^m(U_t^m)^\top,\quad d_t^m>0.
 $$
 
 Training minimizes mean negative log likelihood, normalized by dimension, over genuine windows. Cross predictors score all valid positions; self predictors score only masked positions. The covariance rank is 16. Linear algebra is performed in float32 even with BF16 neural activations.
@@ -51,7 +51,7 @@ Training minimizes mean negative log likelihood, normalized by dimension, over g
 For residual whitening, set `B=D^{-1/2}U` and `w=D^{-1/2}(h−μ)`. If `BᵀB=VΛVᵀ`, the implemented correction is
 
 $$
- r=\left[I-BV\,\operatorname{diag}\!\left(\frac{1}{\sqrt{1+\lambda_i}(1+\sqrt{1+\lambda_i})}\right)V^\top B^\top\right]w.
+ r=\left[I-BV\,\mathrm{diag}\!\left(\frac{1}{\sqrt{1+\lambda_i}(1+\sqrt{1+\lambda_i})}\right)V^\top B^\top\right]w.
 $$
 
 This applies `(I+BBᵀ)^{-1/2}` without constructing a 512×512 inverse square root. Under a correctly specified conditional Gaussian, `Cov(r | c)=I`. **This covariance identity does not imply that finite learned residuals are exactly Gaussian or forgery invariant.** The unit test verifies the matrix identity.
