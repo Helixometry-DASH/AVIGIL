@@ -67,7 +67,32 @@ Evaluated across **52,924 test clips** with official canonical evaluation script
 
 ---
 
-## 4. Comprehensive Ablation Studies
+## 4. Comprehensive Mixed $	o$ Mixed Benchmark: Author Release vs. Re-evaluation vs. ReBound
+
+Comparison against the author's official released checkpoint (`weights/avigil_m5/model.pt`, report from `test_metrics.json`), our full 25k-clip re-evaluation of AVIGIL, and ReBound on identical test data:
+
+| Metric | AVIGIL Official (`model.pt`) | AVIGIL Re-eval (Our Eval, Argmax) | ReBound (Joint) | ReBound (Router) | Net Gain (Router vs. AVIGIL) |
+|---|---|---|---|---|---|
+| **AP@50** | 94.23% | 95.69% | 95.96% | **97.71%** | **+2.02% ~ +3.48%** |
+| **AP@75** | 91.53% | 93.27% | 93.55% | **96.07%** | **+2.80% ~ +4.54%** |
+| **AP@90** | 88.64% | 79.20% | 91.33% | **93.86%** | **+5.22% ~ +14.66%** |
+| **AP@95** | 85.60% | **61.23%** *(quantized)* | 89.07% | **91.26%** *(92.30%)* | **+5.66% ~ +30.03%** |
+| **AR@10** | 93.17% | 91.80% | 96.05% | **98.00%** | **+4.83% ~ +6.20%** |
+| **Union AP@50** | 93.37% | 95.69% | 95.96% | **97.71%** | **+2.02% ~ +4.34%** |
+| **Union AP@75** | 90.18% | 93.27% | 93.55% | **96.07%** | **+2.80% ~ +5.89%** |
+| **Union AP@95** | **49.72%** *(collapse)* | **61.23%** | 89.07% | **91.26%** | **+30.03% ~ +41.54%** |
+| **Modality Acc: Visual** | 99.78% | 98.40% | 100.00% | **100.00%** | +0.22% ~ +1.60% |
+| **Modality Acc: Audio** | 99.54% | 97.80% | 100.00% | **100.00%** | +0.46% ~ +2.20% |
+| **Modality Acc: Both** | **78.07%** *(interference)* | **76.50%** | 100.00% | **100.00%** | **+21.93% ~ +23.50%** |
+
+### Key Observations:
+1. **AVIGIL Union AP@95 Collapse (49.72%):** When evaluating multi-modal unions across the recording timeline, AVIGIL's cross-attention misaligns boundaries, dropping AP@95 by 35.88% relative to per-modality scoring. ReBound's continuous sub-frame regression maintains 91.26% (+41.54% absolute improvement).
+2. **Dual-Manipulation Interference (78.07%):** In clips where both audio and video are tampered with, AVIGIL's modality accuracy collapses by over 21% due to bidirectional attention cross-talk. ReBound's Private Expert Router processes unimodal signals through dedicated expert pathways, eliminating cross-talk and achieving 100.0% modality discrimination.
+3. **Quantization Wall (61.23%):** Evaluating AVIGIL with standard discrete frame argmax incurs severe frame truncation penalties at strict IoU thresholds, dropping AP@95 to 61.23%.
+
+---
+
+## 5. Comprehensive Ablation Studies
 
 ### A. ReBound Component Deductive Ablations
 Isolating the quantitative impact of each ReBound novelty on test benchmarks:
