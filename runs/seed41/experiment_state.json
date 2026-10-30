@@ -1,0 +1,319 @@
+{
+  "started": "2026-10-27T03:16:20.663131+00:00",
+  "config_sha256": "2a77ea99d9c8dcc62feb42582b7f34f5be000aa53ff973ad594661d0b43b658a",
+  "completed": [
+    "prepare",
+    "extract",
+    "reference-inputs",
+    "fit-pca",
+    "train-genuine",
+    "cache-evidence",
+    "fit-transport",
+    "pretrain-boundary",
+    "train-experts_source_audio_source",
+    "calibrate_source_audio_source",
+    "train-experts_source_visual_source",
+    "calibrate_source_visual_source",
+    "prepare-test_source_audio_source_target_A",
+    "infer_source_audio_source_target_A",
+    "evaluate_source_audio_source_target_A",
+    "prepare-test_source_audio_source_target_V",
+    "infer_source_audio_source_target_V",
+    "evaluate_source_audio_source_target_V",
+    "prepare-test_source_visual_source_target_A",
+    "infer_source_visual_source_target_A",
+    "evaluate_source_visual_source_target_A",
+    "prepare-test_source_visual_source_target_V",
+    "infer_source_visual_source_target_V",
+    "evaluate_source_visual_source_target_V"
+  ],
+  "events": [
+    {
+      "stage": "prepare",
+      "pid": 2033831,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/prepare_1793070980.log",
+      "started": "2026-10-27T03:16:20.664142+00:00"
+    },
+    {
+      "stage": "pretrain-boundary",
+      "pid": 2034698,
+      "gpus": [
+        "0"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/pretrain-boundary_1793071010.log",
+      "started": "2026-10-27T03:16:50.812552+00:00"
+    },
+    {
+      "stage": "extract",
+      "pid": 2034701,
+      "gpus": [
+        "1"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/extract_1793071010.log",
+      "started": "2026-10-27T03:16:50.938936+00:00"
+    },
+    {
+      "stage": "reference-inputs",
+      "pid": 4040747,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/reference-inputs_1793084433.log",
+      "started": "2026-10-27T07:00:33.346149+00:00"
+    },
+    {
+      "stage": "fit-pca",
+      "pid": 4061232,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/fit-pca_1793084793.log",
+      "started": "2026-10-27T07:06:33.671016+00:00"
+    },
+    {
+      "stage": "train-genuine",
+      "pid": 4066241,
+      "gpus": [
+        "1",
+        "3",
+        "4",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/train-genuine_1793084883.log",
+      "started": "2026-10-27T07:08:03.895415+00:00"
+    },
+    {
+      "stage": "cache-evidence",
+      "pid": 114893,
+      "gpus": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/cache-evidence_1793089328.log",
+      "started": "2026-10-27T08:22:08.093824+00:00"
+    },
+    {
+      "stage": "fit-transport",
+      "pid": 231406,
+      "gpus": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/fit-transport_1793091610.log",
+      "started": "2026-10-27T09:00:10.210958+00:00"
+    },
+    {
+      "stage": "train-experts_source_audio_source",
+      "pid": 252774,
+      "gpus": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/train-experts_source_audio_source_1793091940.log",
+      "started": "2026-10-27T09:05:40.584877+00:00"
+    },
+    {
+      "stage": "calibrate_source_audio_source",
+      "pid": 966840,
+      "gpus": [
+        "0"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/calibrate_source_audio_source_1793110197.log",
+      "started": "2026-10-27T14:09:57.094244+00:00"
+    },
+    {
+      "stage": "train-experts_source_visual_source",
+      "pid": 980827,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/train-experts_source_visual_source_1793110767.log",
+      "started": "2026-10-27T14:19:27.808130+00:00"
+    },
+    {
+      "stage": "calibrate_source_visual_source",
+      "pid": 1086177,
+      "gpus": [
+        "0"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/calibrate_source_visual_source_1793114971.log",
+      "started": "2026-10-27T15:29:31.824047+00:00"
+    },
+    {
+      "stage": "prepare-test_source_audio_source_target_A",
+      "pid": 1099118,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/prepare-test_source_audio_source_target_A_1793115512.log",
+      "started": "2026-10-27T15:38:32.455613+00:00"
+    },
+    {
+      "stage": "infer_source_audio_source_target_A",
+      "pid": 1339035,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/infer_source_audio_source_target_A_1793116713.log",
+      "started": "2026-10-27T15:58:33.729686+00:00"
+    },
+    {
+      "stage": "evaluate_source_audio_source_target_A",
+      "pid": 1358169,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/evaluate_source_audio_source_target_A_1793117254.log",
+      "started": "2026-10-27T16:07:34.238630+00:00"
+    },
+    {
+      "stage": "prepare-test_source_audio_source_target_V",
+      "pid": 1360386,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/prepare-test_source_audio_source_target_V_1793117284.log",
+      "started": "2026-10-27T16:08:04.388594+00:00"
+    },
+    {
+      "stage": "infer_source_audio_source_target_V",
+      "pid": 1491148,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/infer_source_audio_source_target_V_1793118125.log",
+      "started": "2026-10-27T16:22:05.293646+00:00"
+    },
+    {
+      "stage": "evaluate_source_audio_source_target_V",
+      "pid": 1514064,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/evaluate_source_audio_source_target_V_1793118815.log",
+      "started": "2026-10-27T16:33:35.892062+00:00"
+    },
+    {
+      "stage": "prepare-test_source_visual_source_target_A",
+      "pid": 1515102,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/prepare-test_source_visual_source_target_A_1793118846.log",
+      "started": "2026-10-27T16:34:06.110757+00:00"
+    },
+    {
+      "stage": "infer_source_visual_source_target_A",
+      "pid": 1516271,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/infer_source_visual_source_target_A_1793118876.log",
+      "started": "2026-10-27T16:34:36.265409+00:00"
+    },
+    {
+      "stage": "evaluate_source_visual_source_target_A",
+      "pid": 1540151,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/evaluate_source_visual_source_target_A_1793119596.log",
+      "started": "2026-10-27T16:46:37.000988+00:00"
+    },
+    {
+      "stage": "prepare-test_source_visual_source_target_V",
+      "pid": 1541209,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/prepare-test_source_visual_source_target_V_1793119627.log",
+      "started": "2026-10-27T16:47:07.151143+00:00"
+    },
+    {
+      "stage": "infer_source_visual_source_target_V",
+      "pid": 1542351,
+      "gpus": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/infer_source_visual_source_target_V_1793119657.log",
+      "started": "2026-10-27T16:47:37.310932+00:00"
+    },
+    {
+      "stage": "evaluate_source_visual_source_target_V",
+      "pid": 1565382,
+      "gpus": [],
+      "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/evaluate_source_visual_source_target_V_1793120347.log",
+      "started": "2026-10-27T16:59:07.928695+00:00"
+    }
+  ],
+  "accuracy_targets": {
+    "seen_AP75": 95,
+    "seen_AP95": 86,
+    "unseen_AP75_min": 30,
+    "unseen_AP75_stretch": 40
+  },
+  "status": "COMPLETE_TARGETS_UNMET",
+  "updated": "2026-10-27T16:59:37.947903+00:00",
+  "controller_pid": 2033735,
+  "stage": "evaluate_source_visual_source_target_V",
+  "stage_pid": 1565382,
+  "gpus": [],
+  "log": "/home/inzi15/ReBound/runs/seed41/controller_logs/evaluate_source_visual_source_target_V_1793120347.log",
+  "disk_free_GiB": 351.61,
+  "results_file": "/home/inzi15/ReBound/runs/seed41/FINAL_RESULTS.json"
+}

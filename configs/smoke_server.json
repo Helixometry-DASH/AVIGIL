@@ -1,0 +1,85 @@
+{
+  "name": "ReBound",
+  "seed": 41,
+  "data_root": "/home/inzi15/LAV-DF",
+  "metadata": "/home/inzi15/LAV-DF/metadata.min.json",
+  "legacy_manifests": "/home/inzi15/ReBound/runs/smoke_seed41/manifests",
+  "backbone": "/home/inzi15/mavloc-run/backbone/videomaev2-base",
+  "workspace": "/home/inzi15/ReBound/runs/smoke_seed41",
+  "feature_cache": "/home/inzi15/ReBound/cache/regions2",
+  "reference_cache": "/home/inzi15/ReBound/cache/reference_inputs",
+  "evidence_cache": "/home/inzi15/ReBound/cache/evidence_smoke_seed41",
+  "regions": 2,
+  "crop_seconds": 4.0,
+  "crop_hop_seconds": 2.0,
+  "sample_rate": 16000,
+  "fps": 25,
+  "reference_hz": 25,
+  "genuine": {
+    "feature_dim": 512,
+    "width": 768,
+    "heads": 12,
+    "predictor_layers": 6,
+    "covariance_rank": 16,
+    "attention_window": 64,
+    "mask_block": 8,
+    "mask_folds": 2,
+    "checkpoint_blocks": true
+  },
+  "boundary": {
+    "evidence_dimension": 32,
+    "width": 512,
+    "heads": 8,
+    "layers": 12,
+    "attention_seconds": 0.5,
+    "windows": [
+      0.08,
+      0.16,
+      0.32
+    ],
+    "anchors": 8,
+    "checkpoint_blocks": true
+  },
+  "flow": {
+    "dimension": 32,
+    "hidden": 256,
+    "layers": 4,
+    "context": 32
+  },
+  "train": {
+    "genuine_epochs": 1,
+    "transport_epochs": 1,
+    "expert_epochs": 1,
+    "patience": 5,
+    "proxy_steps": 2,
+    "lr_genuine": 0.0001,
+    "lr_transport": 0.0001,
+    "lr_boundary": 0.0001,
+    "lr_experts": 0.0003,
+    "batch_size": 2,
+    "effective_batch": 2,
+    "workers": 0,
+    "amp": true,
+    "auto_batch": false,
+    "max_batch_size": 32
+  },
+  "decode": {
+    "frame_threshold": 0.5,
+    "min_seconds": 0.04,
+    "nms_iou": 0.3,
+    "budget": 100,
+    "shared_weight": 0.5
+  },
+  "targets_percent": {
+    "seen_AP75": 95,
+    "seen_AP95": 86,
+    "unseen_AP75_min": 30,
+    "unseen_AP75_stretch": 40
+  },
+  "confirmatory_seeds": [
+    41,
+    42,
+    43
+  ],
+  "status": "Authorized bounded real-data smoke; not final benchmark results"
+}

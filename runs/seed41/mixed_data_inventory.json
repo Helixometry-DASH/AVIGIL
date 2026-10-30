@@ -1,0 +1,38 @@
+{
+  "availability_rule": "raw video and existing AV-HuBERT bank must exist",
+  "test_rows_selected": false,
+  "splits": {
+    "train": {
+      "included": {
+        "Real": 20965,
+        "A-only": 18836,
+        "AV": 18847,
+        "V-only": 19025
+      },
+      "excluded_missing_input": {
+        "Real": 289,
+        "AV": 243,
+        "V-only": 246,
+        "A-only": 252
+      },
+      "total": 77673,
+      "manifest_sha256": "d0125f9c0d5934f4c82b726e320cf4cea7d4544bd4f3bcff0e04034cd225636c"
+    },
+    "dev": {
+      "included": {
+        "A-only": 7612,
+        "Real": 8160,
+        "V-only": 7730,
+        "AV": 7610
+      },
+      "excluded_missing_input": {
+        "Real": 111,
+        "AV": 91,
+        "V-only": 90,
+        "A-only": 97
+      },
+      "total": 31112,
+      "manifest_sha256": "91c91c1ad8e23ec209da30d0e5fdd75259f3de03855ff9338da2dbe161cc281e"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "summary": {
+    "audio_source_to_A": {
+      "kind": "seen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 97.49,
+      "AP75": 94.99,
+      "AP95": 90.21,
+      "AR100": 96.18,
+      "videos": 13191
+    },
+    "visual_source_to_V": {
+      "kind": "seen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 97.70,
+      "AP75": 93.69,
+      "AP95": 88.66,
+      "AR100": 94.70,
+      "videos": 13271
+    },
+    "visual_source_to_A": {
+      "kind": "unseen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 31.56,
+      "AP75": 17.54,
+      "AP95": 1.47,
+      "AR100": 31.84,
+      "videos": 13191
+    },
+    "audio_source_to_V": {
+      "kind": "unseen",
+      "scope": "full architecture (experts + boundary + transport + CCA + crossmodal, combined)",
+      "AP50": 30.04,
+      "AP75": 13.12,
+      "AP95": 0.70,
+      "AR100": 23.61,
+      "videos": 13271
+    },
+    "mixed_source_to_MIXED": {
+      "kind": "joint_upper_bound",
+      "scope": "full architecture (experts + boundary + transport, combined)",
+      "AP50": 95.96,
+      "AP75": 93.55,
+      "AP95": 89.07,
+      "AR100": 95.62,
+      "private_AP95": 92.30,
+      "private_AR100": 98.33,
+      "videos": 25930
+    }
+  },
+  "targets_met": {
+    "seen_AP75>=95": false,
+    "seen_AP95>=86": true,
+    "unseen_AP75>=30": false,
+    "mixed_AP95>=86": true
+  }
+}

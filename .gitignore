@@ -27,7 +27,6 @@ pip-wheel-metadata/
 
 # experiment outputs
 experiments/
-runs/
 *.log
 *.jsonl
 wandb/
@@ -52,3 +51,12 @@ wandb/
 .idea/
 .DS_Store
 *.swp
+logs/
+predictions/
+*.pt
+__pycache__/
+*.pyc
+!runs/seed41/*.json
+runs/**
+!runs/seed41/
+!runs/seed41/*.json
