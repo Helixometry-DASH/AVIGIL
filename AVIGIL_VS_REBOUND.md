@@ -64,3 +64,28 @@ Evaluated across **52,924 test clips** with official canonical evaluation script
 | **V -> A (Unseen Audio)** | 13,191 clips | **AP@50**<br>**AP@75**<br>AP@95<br>**AR@100** | 3.80%<br>2.50%<br>0.61%<br>3.17% | **31.56%**<br>**17.54%**<br>1.47%<br>**31.84%** | **+27.76%**<br>**+15.04%**<br>+0.86%<br>**+28.67%** (10x AR) |
 | **A -> V (Unseen Visual)** | 13,271 clips | **AP@50**<br>**AP@75**<br>AP@95<br>**AR@100** | 2.96%<br>2.36%<br>0.21%<br>2.33% | **30.04%**<br>**13.12%**<br>0.70%<br>**23.61%** | **+27.08%**<br>**+10.76%**<br>+0.49%<br>**+21.28%** (10x AR) |
 | **MIX -> MIX (Joint)** | 25,930 clips | AP@50<br>AP@75<br>**AP@95**<br>AR@100 | 95.69%<br>93.27%<br>61.23%<br>92.22% | **95.96%** (Joint)<br>**93.55%** (Joint)<br>**89.07%** (Joint)<br>**95.62%** (Joint)<br>*(Router: 92.30% AP95)* | +0.27%<br>+0.28%<br>**+27.84%**<br>+3.40%<br>*(Router: +31.07% AP95)* |
+
+---
+
+## 4. Comprehensive Ablation Studies
+
+### A. ReBound Component Deductive Ablations
+Isolating the quantitative impact of each ReBound novelty on test benchmarks:
+
+| Exp ID | Ablation Description | Test Split | AP@50 | AP@75 | **AP@95** | AR@100 | Finding & Impact |
+|---|---|---|---|---|---|---|---|
+| **RB-0** | **Full ReBound** (Continuous + CCA + MMD + Calib) | $V 	o V$ (Seen)<br>$V 	o A$ (Unseen) | 97.70%<br>31.56% | 93.69%<br>17.54% | **88.66%**<br>1.47% | 94.70%<br>31.84% | Full model performance baseline |
+| **RB-1** | **w/o Continuous Sub-Frame Head** (Discrete 40ms Grid) | $V 	o V$ (Seen)<br>$A 	o A$ (Seen) | 97.77%<br>97.52% | 93.58%<br>94.98% | **25.79%**<br>89.79% | 87.08%<br>96.14% | **-62.87% AP@95 drop** on 40ms video grid; proves sub-frame head resolves quantization barrier. |
+| **RB-2** | **w/o Real-Referenced CCA** (Dense Cross-Attention) | $V 	o A$ (Unseen)<br>$A 	o V$ (Unseen) | 1.19%<br>0.10% | **0.45%**<br>**0.01%** | 0.00%<br>0.00% | 4.08%<br>0.50% | **-17.09% AP@75 collapse**; proves dense cross-attention memorizes source artifacts and has near-zero transfer. |
+| **RB-Priv** | **Private Route Only** (w/o Shared Invariant Route) | $V 	o V$ (Seen)<br>$V 	o A$ (Unseen) | 97.61%<br>3.84% | 93.65%<br>2.52% | 88.70%<br>0.84% | 94.60%<br>3.26% | Unimodal route alone fails completely on unseen (3.84% AP@50), matching AVIGIL (3.80%). |
+| **RB-Shared**| **Shared CCA Route Only** (w/o Private Route) | $V 	o A$ (Unseen) | 29.73% | 16.04% | 0.47% | 30.12% | Supplies **94% of total unseen cross-modal transfer** signal. |
+
+---
+
+### B. AVIGIL Core Architectural & Grid Ablations
+
+| Exp ID | AVIGIL Configuration | Grid Alignment | AP@50 | AP@75 | **AP@95** | AR@100 | Finding & Impact |
+|---|---|---|---|---|---|---|---|
+| **AV-M5** | **Base Released AVIGIL** (Bi-Cross-Attn + Gating) | Audio (15.2 ms)<br>Visual (40.0 ms) | 94.90% (A)<br>97.37% (V) | 93.35% (A)<br>93.41% (V) | 80.37% (A)<br>**19.40%** (V) | 93.10% (A)<br>89.00% (V) | Video branch suffers massive 19.4% AP@95 failure due to 40ms grid. |
+| **AV-G0** | **40ms Video Grid Downsampling** | Video (40.0 ms) | 94.89% (A) | 93.27% (A) | **67.52%** (A) | 92.31% (A) | **-12.85% AP@95 drop** when audio is forced to 40ms grid; confirms grid size dictates discrete AP@95 ceiling. |
+| **AV-Calib**| **AVIGIL + Genuine EVT Calibration** | Native Grids | 94.90% (A)<br>97.37% (V) | 93.35% (A)<br>93.41% (V) | 80.37% (A)<br>19.40% (V) | 93.10% (A)<br>89.00% (V) | EVT tail normalization preserves top-rank discrimination but cannot recover missing sub-frame boundary alignment. |
