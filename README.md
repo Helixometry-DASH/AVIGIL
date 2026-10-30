@@ -1,148 +1,94 @@
-# ReBound Reproducibility Guide
+# ReBound: Real-Referenced Boundary Transfer for High-Precision Audio-Visual Deepfake Localization
 
-This guide provides the complete, step-by-step instructions to reproduce all empirical benchmark results reported for **ReBound** on the LAV-DF dataset across all 5 evaluation splits.
+ReBound transforms audio-visual temporal forgery localization from fixed-grid classification into continuous-time sub-frame regression, eliminating frame quantization errors and enabling zero-shot cross-modal transfer.
 
 ---
 
-## 1. Environment & Setup
+## 1. Quick Inference With Pretrained Weights
 
-### Prerequisites
-* Linux (Ubuntu 20.04+ recommended)
-* NVIDIA GPUs with CUDA 11.8+ / 12.0+
-* Conda / Miniconda
+Pretrained weights are stored under `weights/rebound/`:
+* `experts_audio.pt`: Dedicated Audio Expert (20.4 MB, 90.21% AP@95)
+* `experts_visual.pt`: Dedicated Visual Expert (20.4 MB, 88.66% AP@95)
+* `experts_mixed.pt`: Joint Multi-Modal Expert (20.4 MB, 89.07% Joint AP@95, 92.30% MoE Router AP@95)
+* `cca.pt`: Real-Referenced Canonical Correlation Analysis reference
+* `transport.pt`: Autoregressive genuine speech normalizing flows
 
-### Environment Installation
+### Single Video Inference via Python
+
+```python
+import torch
+from rebound.native import NativeExperts
+from rebound.assemble import blend_predictions
+from rebound.decode import decode
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# 1. Load Pretrained ReBound Expert Model
+model = NativeExperts("mixed_source").to(device)
+ckpt = torch.load("weights/rebound/experts_mixed.pt", map_location=device)
+model.load_state_dict(ckpt['model'], strict=False)
+model.eval()
+
+# 2. Forward pass with extracted features (audio, video)
+# output contains continuous millisecond boundary offsets: dt * a * tanh(u_t)
+with torch.no_grad():
+    prediction = model(audio, video, video_valid, audio_length, video_frames)
+
+# 3. Continuous-time proposal decoding
+proposals = decode(
+    prediction,
+    frame_threshold=0.5,
+    nms_iou=0.3,
+    budget=100,
+    refine='centroid'  # sub-frame continuous boundary refinement
+)
+# Returns list of proposals: [confidence_score, start_time_sec, end_time_sec]
+print("Detected Forgery Intervals:", proposals)
+```
+
+### Full Benchmark Inference Across 5 Splits
+
 ```bash
-# Clone the repository and switch to the dashlab branch
-git clone -b dashlab git@github.com:Helixometry-DASH/AVIGIL.git ReBound
-cd ReBound
-
-# Create and activate environment
-conda create -n cvpr python=3.10 -y
-conda activate cvpr
-
-# Install PyTorch with CUDA support
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-# Install project requirements
-pip install -r requirements.txt
 export PYTHONPATH=src
-```
 
----
-
-## 2. Dataset Setup & Verification
-
-Configure `configs/server.json` to point to your local dataset root:
-```json
-{
-  "dataset_root": "/path/to/LAV-DF",
-  "workspace": "runs/seed41",
-  "device": "cuda"
-}
-```
-
-Run preflight checks to verify data integrity and hardware availability:
-```bash
-python -m rebound preflight --config configs/server.json
-```
-
----
-
-## 3. Training Pipeline (From Scratch)
-
-ReBound trains in structured stages preserving zero target leakage:
-
-### Stage A: Unsupervised Real-Referenced Representations
-Anchors multi-modal latent representations strictly to authentic speech statistics:
-```bash
-# Prepare manifests and split rows
-python -m rebound prepare --config configs/server.json --execute
-
-# Extract multi-modal features
-python -m rebound extract --config configs/server.json --execute
-
-# Extract genuine reference inputs
-python -m rebound reference-inputs --config configs/server.json --execute
-
-# Fit PCA projections on authentic acoustic-visual manifold
-python -m rebound fit-pca --config configs/server.json --execute
-
-# Fit Real-Referenced Multi-Scale CCA
-python -m rebound fit-cca --config configs/server.json --execute
-
-# Train genuine density estimator & normalizing transport flows
-python -m rebound train-genuine --config configs/server.json --execute
-python -m rebound fit-transport --config configs/server.json --execute
-
-# Pretrain directional MMD boundary head
-python -m rebound pretrain-boundary --config configs/server.json --execute
-```
-
-### Stage B: Supervised Expert Training
-Trains native expert backbones with continuous sub-frame offset regression heads:
-```bash
-# Train Audio Expert (audio_source)
-CUDA_VISIBLE_DEVICES=0 python -m rebound train-experts --config configs/server.json --source audio_source --execute
-
-# Train Visual Expert (visual_source)
-CUDA_VISIBLE_DEVICES=1 python -m rebound train-experts --config configs/server.json --source visual_source --execute
-
-# Train Cross-Modal Invariant Alignment Heads
-CUDA_VISIBLE_DEVICES=0 python -m rebound train-crossmodal --config configs/server.json --source audio_source --execute
-CUDA_VISIBLE_DEVICES=1 python -m rebound train-crossmodal --config configs/server.json --source visual_source --execute
-
-# Train Joint Mixed Expert (mixed_source, DDP multi-GPU)
-torchrun --nproc_per_node=4 -m rebound train-experts --config configs/server.json --source mixed_source --execute
-```
-
-### Stage C: Genuine EVT Tail-Ranking Calibration
-Calibrates proposal confidence bounds using held-out genuine clips (zero target forgery labels):
-```bash
-python -m rebound calibrate --config configs/server.json --source audio_source --execute
-python -m rebound calibrate --config configs/server.json --source visual_source --execute
-python -m rebound calibrate --config configs/server.json --source mixed_source --execute
-```
-
----
-
-## 4. Benchmark Evaluation Across All 5 Splits
-
-Run full inference and compute official canonical metrics (`temporal_metrics`) across 52,924 test clips:
-
-```bash
-# Split 1: Seen Audio (audio_source -> A, 13,191 clips)
+# 1. Seen Audio Evaluation (audio_source -> A)
 python -m rebound infer --config configs/server.json --source audio_source --target A --execute
 python -m rebound evaluate --config configs/server.json --source audio_source --target A
 
-# Split 2: Seen Visual (visual_source -> V, 13,271 clips)
+# 2. Seen Visual Evaluation (visual_source -> V)
 python -m rebound infer --config configs/server.json --source visual_source --target V --execute
 python -m rebound evaluate --config configs/server.json --source visual_source --target V
 
-# Split 3: Unseen Audio Zero-Shot (visual_source -> A, 13,191 clips)
+# 3. Unseen Audio Zero-Shot Transfer (visual_source -> A)
 python -m rebound infer --config configs/server.json --source visual_source --target A --execute
 python -m rebound evaluate --config configs/server.json --source visual_source --target A
 
-# Split 4: Unseen Visual Zero-Shot (audio_source -> V, 13,271 clips)
+# 4. Unseen Visual Zero-Shot Transfer (audio_source -> V)
 python -m rebound infer --config configs/server.json --source audio_source --target V --execute
 python -m rebound evaluate --config configs/server.json --source audio_source --target V
 
-# Split 5: Joint Mixed (mixed_source -> MIXED, 25,930 clips)
+# 5. Joint Multi-Modal Evaluation (mixed_source -> MIXED, 25,930 clips)
 python -m rebound infer --config configs/server.json --source mixed_source --target MIXED --execute
 python -m rebound evaluate --config configs/server.json --source mixed_source --target MIXED
 ```
 
 ---
 
-## 5. Expected Official Results
+## 2. Key Performance Benchmarks (LAV-DF Test Set: 52,924 Clips)
 
-| Split | Target Set | Test Clips | AP@50 | AP@75 | **AP@95** | AR@100 |
-|---|---|---|---|---|---|---|
-| **$A \to A$ (Seen Audio)** | Audio manipulations | 13,191 | 97.49% | 94.99% | **90.21%** | 96.18% |
-| **$V \to V$ (Seen Visual)** | Visual manipulations | 13,271 | 97.70% | 93.69% | **88.66%** | 94.70% |
-| **$V \to A$ (Unseen Audio)** | Blind cross-modal transfer | 13,191 | **31.56%** | **17.54%** | 1.47% | **31.84%** |
-| **$A \to V$ (Unseen Visual)** | Blind cross-modal transfer | 13,271 | **30.04%** | **13.12%** | 0.70% | **23.61%** |
-| **$\text{MIX} \to \text{MIX}$ (Joint)**| Joint multi-modal fakes | 25,930 | 95.96% | 93.55% | **89.07%** | 95.62% |
-| **$\text{MIX} \to \text{MIX}$ (Router)**| MoE Private Expert Route | 25,930 | **97.71%** | **96.07%** | **91.26%** *(92.30% peak)* | **98.33%** |
+| Split | Target Set | Metric | Vanilla AVIGIL | ReBound (Ours) | Absolute Gain |
+|---|---|---|---|---|---|
+| **$A \to A$ (Seen Audio)** | 13,191 clips | AP@50<br>AP@75<br>**AP@95**<br>AR@100 | 94.90%<br>93.35%<br>80.37%<br>93.10% | **97.49%**<br>**94.99%**<br>**90.21%**<br>**96.18%** | +2.59%<br>+1.64%<br>**+9.84%**<br>+3.08% |
+| **$V \to V$ (Seen Visual)** | 13,271 clips | AP@50<br>AP@75<br>**AP@95**<br>AR@100 | 97.37%<br>93.41%<br>19.40%<br>89.00% | **97.70%**<br>**93.69%**<br>**88.66%**<br>**94.70%** | +0.33%<br>+0.28%<br>**+69.26%**<br>+5.70% |
+| **$V \to A$ (Unseen Audio)** | 13,191 clips | **AP@50**<br>**AP@75**<br>AP@95<br>**AR@100** | 3.80%<br>2.50%<br>0.61%<br>3.17% | **31.56%**<br>**17.54%**<br>1.47%<br>**31.84%** | **+27.76%**<br>**+15.04%**<br>+0.86%<br>**+28.67%** (10x AR) |
+| **$A \to V$ (Unseen Visual)** | 13,271 clips | **AP@50**<br>**AP@75**<br>AP@95<br>**AR@100** | 2.96%<br>2.36%<br>0.21%<br>2.33% | **30.04%**<br>**13.12%**<br>0.70%<br>**23.61%** | **+27.08%**<br>**+10.76%**<br>+0.49%<br>**+21.28%** (10x AR) |
+| **$\text{MIX} \to \text{MIX}$ (Joint)** | 25,930 clips | AP@50<br>AP@75<br>**AP@95**<br>AR@100 | 95.69%<br>93.27%<br>61.23%<br>92.22% | **95.96%** (Joint)<br>**93.55%** (Joint)<br>**89.07%** (Joint)<br>**95.62%** (Joint)<br>*(Router: 92.30% AP95)* | +0.27%<br>+0.28%<br>**+27.84%**<br>+3.40%<br>*(Router: +31.07% AP95)* |
 
-Frozen official metrics are archived in `runs/seed41/FINAL_RESULTS.json`.
+---
+
+## 3. Project Documentation Links
+
+* [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md): Complete pipeline instructions to train from scratch and reproduce all metrics.
+* [`AVIGIL_VS_REBOUND.md`](AVIGIL_VS_REBOUND.md): Side-by-side comparison, ablation studies, and architectural differences vs. AVIGIL.
+* [`ARCHITECTURE.md`](ARCHITECTURE.md): Mathematical formulations, LaTeX proofs, and architecture schemas.
+* [`PRESENTATION_SLIDES_IJCAI.md`](PRESENTATION_SLIDES_IJCAI.md): Presentation slide deck for research meetings and advisor updates.

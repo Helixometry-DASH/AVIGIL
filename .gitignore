@@ -60,3 +60,4 @@ __pycache__/
 runs/**
 !runs/seed41/
 !runs/seed41/*.json
+!weights/rebound/*.pt
